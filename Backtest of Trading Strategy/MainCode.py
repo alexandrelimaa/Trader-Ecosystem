@@ -133,7 +133,8 @@ for index, candle in candle_3min.loc[inicio_tick:].iterrows():
             stop_atual = preco_entrada + 200
             melhor_preco= preco_entrada
     if posicao_aberta:
-        ticks_da_operacao = tickatick.loc[index:]
+        index_execucao = index +pd.Timedelta(minutes = 3)
+        ticks_da_operacao = tickatick.loc[index_execucao:]
         for index_tick, tick in ticks_da_operacao.iterrows():
             if tipo_operacao == 'compra':
                 if  melhor_preco < tick['Preço']:
@@ -178,6 +179,6 @@ for index, candle in candle_3min.loc[inicio_tick:].iterrows():
                     horario_saida_anterior = index_tick
                     posicao_aberta = False
                     break
-print(tickatick.index.min())
-print(tickatick.index.max())
-print(tickatick.index.normalize().unique())
+print(len(trades))
+for t in trades:
+    print(t)
