@@ -179,6 +179,14 @@ for index, candle in candle_3min.loc[inicio_tick:].iterrows():
                     horario_saida_anterior = index_tick
                     posicao_aberta = False
                     break
-print(len(trades))
-for t in trades:
-    print(t)
+#Métricas
+df_trades = pd.DataFrame(trades)
+#Win rate
+win_rate = ((df_trades['lucro'] > 0).mean()) * 100
+print(f'Win Rate: {win_rate:.2f}%')
+#Gain e Loss médio
+gain_medio = df_trades[df_trades['lucro'] > 0]['lucro'].mean()
+print(f'Gain Médio: {gain_medio:.2f}')
+loss_medio = df_trades[df_trades['lucro'] < 0]['lucro'].mean()
+print(f'Loss Médio: {loss_medio:.2f}')
+
