@@ -1,15 +1,28 @@
-#Bibliotecas
+#Libraries
 import pandas as pd
 import numpy as np
+import helpers as h
 from datetime import time
 
-#limpando os dados:
-ummin = pd.read_csv("dados/WINFUT2026-08-01(1min).csv",
-                    encoding = 'latin1',
-                    sep = ';',
-                    thousands='.',
-                    decimal = ','
-                    )
+#==== Strategy Paraments ====
+short_ema = 9
+long_ema = 400
+timeframe = 3
+session_start = time(9 , 40)
+session_end = time(11 , 15)
+stop_loss = 200
+trailing_activation = 65
+trailing_stop = 15
+
+#=====================================
+#Cleaning the data:
+candle_1min = h.clean_data(h.load_data("dados/WINFUT2026-08-01(1min).csv"))
+#ummin = pd.read_csv("dados/WINFUT2026-08-01(1min).csv",
+                   # encoding = 'latin1',
+                    #sep = ';',
+                    #thousands='.',
+                    #decimal = ','
+                   # )
 tick_11 = pd.read_csv("dados/2026-08-11a18 tick a tick.csv",
                       encoding='latin1', sep=';', thousands='.', decimal=',')
 tick_12 = pd.read_csv('dados/tick_12_08.csv',
@@ -26,6 +39,10 @@ tickatick['datetime']= pd.to_datetime(tickatick['Data']+ ' '+ tickatick['Hora'],
 tickatick = tickatick.set_index('datetime')
 tickatick = tickatick.sort_index()
 ummin = ummin.set_index('datetime')
+
+
+#=================================
+#fazer um for para juntar os candle no timeframe que quero
 candle_3min = ummin.resample('3min') .agg({
     'Abertura' : 'first',
     'Fechamento' : 'last',
@@ -34,83 +51,82 @@ candle_3min = ummin.resample('3min') .agg({
     'Mínimo' : 'min'
 })
 
-#Criando as EMA
-candle_3min['ema9'] = candle_3min['Fechamento'].ewm(span=9, adjust=False).mean()
-candle_3min['ema400'] = candle_3min['Fechamento'].ewm(span=400, adjust=False).mean()
-#print(candle_3min[['Fechamento', 'ema9', 'ema400']].head(10))
+#Creating EMA's
+#modificar o nome candle_3min
+candle_3min['short_ema'] = candle_3min['Fechamento'].ewm(span=short_ema, adjust=False).mean()
+candle_3min['long_ema'] = candle_3min['Fechamento'].ewm(span=long_ema, adjust=False).mean()
 
-#Criando entrada
-condicao = [
-    candle_3min['Fechamento'] > candle_3min['ema400'],
-    candle_3min['Fechamento'] < candle_3min['ema400'],
-    candle_3min['Fechamento'] == candle_3min['ema400'],
+#Creating entry signal
+condition = [
+    candle_3min['Fechamento'] > candle_3min['long_ema'],
+    candle_3min['Fechamento'] < candle_3min['long_ema'],
+    candle_3min['Fechamento'] == candle_3min['long_ema'],
 ]
-resultados = [
-    'alta',
-    'baixa',
-    'neutro'
+results = [
+    'up',
+    'down',
+    'neutral'
 ]
-candle_3min['tendencia'] = np.select(condicao, resultados, default = 'indefinido')
-condicao2 = [
-    candle_3min['tendencia'] == 'alta',
-    candle_3min['tendencia'] == 'baixa',
-    candle_3min['tendencia'] == 'neutro'
+candle_3min['trend'] = np.select(condition, results, default = 'undefined')
+condition2 = [
+    candle_3min['trend'] == 'up',
+    candle_3min['trend'] == 'down',
+    candle_3min['trend'] == 'neutral'
 ]
-resultados2 = [
-    (candle_3min['Mínimo'] <= candle_3min['ema9']) & (candle_3min['ema9'] <= candle_3min['Máximo']),
-    (candle_3min['Máximo'] >= candle_3min['ema9']) & (candle_3min['ema9'] >= candle_3min['Mínimo']),
+results2 = [
+    (candle_3min['Mínimo'] <= candle_3min['short_ema']) & (candle_3min['short_ema'] <= candle_3min['Máximo']),
+    (candle_3min['Máximo'] >= candle_3min['short_ema']) & (candle_3min['short_ema'] >= candle_3min['Mínimo']),
     False
 ]
-candle_3min['tocou_ema9'] = np.select(condicao2, resultados2)
-#Proximo Candle
-candle_3min['fechou_direcao'] = np.where(candle_3min['tendencia'] == 'alta',
+candle_3min['touched_short_ema'] = np.select(condition2, results2)
+#Next Candle
+candle_3min['closed_direction'] = np.where(candle_3min['trend'] == 'up',
                           candle_3min['Fechamento'] > candle_3min['Abertura'], candle_3min['Fechamento'] < candle_3min['Abertura'])
-candle_3min['tocou_anterior'] = candle_3min['tocou_ema9'].shift(1)
+candle_3min['touched_previous'] = candle_3min['touched_short_ema'].shift(1)
 
 #Montar o limite de horario
-candle_3min['dentro_horario'] = (candle_3min.index.time >= time(9,40)) & (candle_3min.index.time <= time(11,15))
+candle_3min['within_session'] = (candle_3min.index.time >= time(session_start)) & (candle_3min.index.time <= time(session_end))
 #11:18 não entra
-candle_3min['seguinte_dentro_hora'] = candle_3min['dentro_horario'].shift(-1)
+candle_3min['next_within_session'] = candle_3min['within_session'].shift(-1)
 
-candle_3min['sinal_compra'] =(
-    ((candle_3min['tendencia'] == 'alta') &
-    (candle_3min['fechou_direcao'] == True) &
-    (candle_3min['tocou_ema9'] == True) &
-    (candle_3min['dentro_horario'] == True) &
-    (candle_3min['seguinte_dentro_hora'] == True)) |
-    ((candle_3min['tendencia'] == 'alta') &
-    (candle_3min['fechou_direcao'] == True) &
-    (candle_3min['tocou_anterior'] == True) &
-    (candle_3min['dentro_horario'] == True) &
-    (candle_3min['seguinte_dentro_hora'] == True))
+candle_3min['buy_signal'] =(
+    ((candle_3min['trend'] == 'up') &
+    (candle_3min['closed_direction'] == True) &
+    (candle_3min['touched_short_ema'] == True) &
+    (candle_3min['within_session'] == True) &
+    (candle_3min['next_within_session'] == True)) |
+    ((candle_3min['trend'] == 'alta') &
+    (candle_3min['closed_direction'] == True) &
+    (candle_3min['touched_previous'] == True) &
+    (candle_3min['within_session'] == True) &
+    (candle_3min['next_within_session'] == True))
 )
-candle_3min['sinal_venda'] =(
-    ((candle_3min['tendencia'] == 'baixa') &
-    (candle_3min['fechou_direcao'] == True) &
-    (candle_3min['tocou_ema9'] == True) &
-    (candle_3min['dentro_horario'] == True) &
-    (candle_3min['seguinte_dentro_hora'] == True)) |
-    ((candle_3min['tendencia'] == 'baixa') &
-    (candle_3min['fechou_direcao'] == True) &
-    (candle_3min['tocou_anterior'] == True) &
-    (candle_3min['dentro_horario'] == True) &
-    (candle_3min['seguinte_dentro_hora'] == True))
+candle_3min['sell_signal'] =(
+    ((candle_3min['trend'] == 'down') &
+    (candle_3min['closed_direction'] == True) &
+    (candle_3min['touched_short_ema'] == True) &
+    (candle_3min['within_session'] == True) &
+    (candle_3min['next_within_session'] == True)) |
+    ((candle_3min['trend'] == 'down') &
+    (candle_3min['closed_direction'] == True) &
+    (candle_3min['touched_previous'] == True) &
+    (candle_3min['within_session'] == True) &
+    (candle_3min['next_within_session'] == True))
 )
 
 #Aplicar loop de entrada
 
 # Variavéis simples
-posicao_aberta = False
-tipo_operacao = None          #compra ou venda
-candle_3min['preco_entrada_compra_venda'] = candle_3min['Abertura'].shift(-1)
-preco_entrada = None
-preco_saida = None
-melhor_preco = None           #preço mais favoravél desde o começo
-trailing_ativo = False
-stop_atual = None
-horario_saida_anterior = None
-lucro = None
-trades = []                   # guardar os trades feitos
+open_position = False
+trade_type = None          #buy or sell
+entry_price = candle_3min['Abertura'].shift(-1)
+exit_price = None
+best_price = None           #preço mais favoravél desde o começo
+trailing_active = False
+current_stoploss = None
+last_exit_time = None
+profit = None
+trades = []                   # saving trades
 
 #Loop
 inicio_tick = tickatick.index.min()
@@ -179,14 +195,4 @@ for index, candle in candle_3min.loc[inicio_tick:].iterrows():
                     horario_saida_anterior = index_tick
                     posicao_aberta = False
                     break
-#Métricas
 df_trades = pd.DataFrame(trades)
-#Win rate
-win_rate = ((df_trades['lucro'] > 0).mean()) * 100
-print(f'Win Rate: {win_rate:.2f}%')
-#Gain e Loss médio
-gain_medio = df_trades[df_trades['lucro'] > 0]['lucro'].mean()
-print(f'Gain Médio: {gain_medio:.2f}')
-loss_medio = df_trades[df_trades['lucro'] < 0]['lucro'].mean()
-print(f'Loss Médio: {loss_medio:.2f}')
-
