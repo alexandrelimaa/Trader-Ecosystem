@@ -4,41 +4,44 @@ import numpy as np
 import helpers as h
 from datetime import time
 
-#==== Strategy Paraments ====
+#==== Strategy Paraments ====#
+    #---TimeFrame--#
+timeframe = '3min'
+    #---Exponecial Moving Average---#
 short_ema = 9
 long_ema = 400
-timeframe = '3min'
-session_start = time(9 , 40)
+    #---Time of Operation---#
+session_start = time(9 , 40)          #Only for entrance
 session_end = time(11 , 15)
+    #---Stop Loss and Take Profit---#
 stop_loss = 200
-trailing_activation = 65
-trailing_stop = 15
+trailing_activation = 65   #whenever hits 65 points = 13 tick
+trailing_stop = 15         #protect with 3 ticks of distance after ativacion
+#===========================#
 
-#=====================================
-#Cleaning the data:
-candle_1min = h.clean_data(h.load_data("dados/WINFUT2026-08-01(1min).csv"))
-tick_data = h.load_all_files('dados/tick_*.csv')
-
-#=================================
-
+#=== Organizing files ===#
+candle_1min = h.clean_data(h.load_data("dados/WINFUT2026-08-01(1min).csv"))     #candle in 1min
+tick_data = h.load_all_files('dados/tick_*.csv')            #trade by trade in the period
 candle = candle_1min.resample(timeframe).agg({
     'Abertura' : 'first',
     'Fechamento' : 'last',
     'Volume' : 'sum',
     'Máximo' : 'max',
     'Mínimo' : 'min'
-})
+})    # whatever timeframe you choose
+#========================#
 
-#Creating EMA's
+#=== Creating EMA's ===#
 candle['short_ema'] = candle['Fechamento'].ewm(span=short_ema, adjust=False).mean()
 candle['long_ema'] = candle['Fechamento'].ewm(span=long_ema, adjust=False).mean()
+#=====================#
 
-#Creating entry signal
+#=== Creating entry signal ===#
 condition = [
     candle['Fechamento'] > candle['long_ema'],
     candle['Fechamento'] < candle['long_ema'],
     candle['Fechamento'] == candle['long_ema'],
-]
+]      #filter in the candles, following the big trend
 results = [
     'up',
     'down',
@@ -55,16 +58,16 @@ results2 = [
     (candle['Máximo'] >= candle['short_ema']) & (candle['short_ema'] >= candle['Mínimo']),
     False
 ]
-candle['touched_short_ema'] = np.select(condition2, results2)
-#Next Candle
+candle['touched_short_ema'] = np.select(condition2, results2)   #touch the short ema
 candle['closed_direction'] = np.where(candle['trend'] == 'up',
                           candle['Fechamento'] > candle['Abertura'], candle['Fechamento'] < candle['Abertura'])
 candle['touched_previous'] = candle['touched_short_ema'].shift(1)
+    # if the candle who did touched the ema close to the wrong direction, if the next one goes to the right direction it also counts
 
-#Montar o limite de horario
 candle['within_session'] = (candle.index.time >= session_start) & (candle.index.time <= session_end)
 candle['next_within_session'] = candle['within_session'].shift(-1)
-
+    #time limitation
+    #--- Checking if the signal was real ---#
 candle['buy_signal'] =(
     ((candle['trend'] == 'up') &
     (candle['closed_direction'] == True) &
@@ -89,48 +92,50 @@ candle['sell_signal'] =(
     (candle['within_session'] == True) &
     (candle['next_within_session'] == True))
 )
+#=============================#
 
-#Aplicar loop de entrada
+#=== Simulation Loop ===#
 
-# Variavéis simples
+    #--- Stable Variables ---#
 position_open = False
 trade_type = None          #buy or sell
 entry_price =None
 candle['buy_sell_price'] = candle['Abertura'].shift(-1)
 exit_price = None
-best_price = None           #preço mais favoravél desde o começo
+best_price = None           #the most favorable price until the moment
 trailing_active = False
-current_stoploss = None
+current_stoploss = None     #always following the best_price by 3 ticks of distance
 last_exit_time = None
 profit = None
-trades = []                   # saving trades
+trades = []                   # saving trades in a list
 
-#Loop
+    #--- Simulation Loop Machine ---#
 warmup_start = tick_data.index.min()
 for index, candle_row in candle.loc[warmup_start:].iterrows():
-
+    #while position not opened yet
     if not position_open:
         if last_exit_time is not None and index <= last_exit_time:
             continue
-
+        #if it's buy
         if candle_row['buy_signal']:
             position_open = True
             trade_type = 'buy'
             entry_price = candle_row['buy_sell_price']
             current_stoploss = entry_price - stop_loss
             best_price = entry_price
-
+        #if it's sell
         elif candle_row['sell_signal']:
             position_open = True
             trade_type = 'sell'
             entry_price = candle_row['buy_sell_price']
             current_stoploss = entry_price + stop_loss
             best_price = entry_price
-
+    #inding the exit
     if position_open:
         execution_time = index +pd.Timedelta(timeframe)
         operation_ticks = tick_data.loc[execution_time:]
         for index_tick, tick in operation_ticks.iterrows():
+            #if was a buy
             if trade_type == 'buy':
                 if  best_price < tick['Preço']:
                     best_price = tick['Preço']
@@ -152,6 +157,7 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
                     last_exit_time = index_tick
                     position_open = False
                     break
+            #if was a sell
             if trade_type == 'sell':
                 if best_price > tick['Preço']:
                     best_price = tick['Preço']
@@ -173,6 +179,10 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
                     last_exit_time = index_tick
                     position_open = False
                     break
+#======================#
+
+#=== Making the list ===#
 df_trades = pd.DataFrame(trades)
 print(len(df_trades))
 print(df_trades.head())
+#=======================#
