@@ -11,7 +11,22 @@ def load_data(filename):
     return df
 
 def clean_data(df):
-    df['datetime'] = pd.to_datetime(df['Data'] + ' ' + df['Hora'], dayfirst = True)
+    df = df.rename(columns={
+        'Ativo' : 'Asset',
+        'Data' : 'Date',
+        'Hora' : 'Time',
+        'Abertura' : 'Open',
+        'Máximo' : 'High',
+        'Mínimo' : 'Low',
+        'Fechamento': 'Close',
+        'Volume': 'Volume',
+        'Quantidade': 'Quantity',
+        'Comprador': 'Buyer',
+        'Preço' : 'Price',
+        'Vendedor' : 'Seller',
+        'Tipo' : 'Type'
+    })
+    df['datetime'] = pd.to_datetime(df['Date'] + ' ' + df['Time'], dayfirst = True)
     df = df.set_index('datetime')
     df = df.sort_index()
     return df
