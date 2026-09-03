@@ -1,7 +1,10 @@
+#Libraries
 import pandas as pd
 import glob
 
+
 def load_data(filename):
+    """ Load data from csv file in portuguese and input some changes to read the file"""
     df = pd.read_csv(filename,
                      encoding='latin1',
                      sep=';',
@@ -10,7 +13,11 @@ def load_data(filename):
                      )
     return df
 
+
 def clean_data(df):
+    """ Translating the words to english,
+    Setting as a pandas dataframe,
+     Putting the days in order"""
     df = df.rename(columns={
         'Ativo' : 'Asset',
         'Data' : 'Date',
@@ -31,7 +38,9 @@ def clean_data(df):
     df = df.sort_index()
     return df
 
+
 def load_all_files(pattern):
+    """Load all the csv files matching pattern"""
     filepaths = glob.glob(pattern)
     dataframes = [clean_data(load_data(fp)) for fp in filepaths]
     combined = pd.concat(dataframes)
