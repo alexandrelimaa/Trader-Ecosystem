@@ -6,11 +6,15 @@ def calculate_win_rate(fileparquet):
     return win_rate
 
 
-def calculate_trades_number(fileparquet):
+def calculate_final_profit(fileparquet):
     df = pd.read_parquet(fileparquet)
     result = df['profit'].sum()
-    return result                          #Result of all trades
-#trades_num = len(df_trades)              #quantity of trades it toke
+    return result       #Result of all trades in points
+
+def calculate_trades_number(fileparquet):
+    df = pd.read_parquet(fileparquet)
+    trades_num = len(df)            #quantity of trades it toke
+    return trades_num
 #profit_operation = result / trades_num   #average profit per trade
 #win_trades = (df_trades['profit'] > 0).sum()
 #loss_trades = (df_trades['profit'] <= 0).sum()
