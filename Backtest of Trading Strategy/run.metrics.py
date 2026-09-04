@@ -5,7 +5,7 @@ from Metrics import risk_metrics as rm
 from Metrics import time_metrics as tm
 
 import pandas as pd
-df_trades = pd.read_parquet('trades.parquet')
+df_trades = pd.read_parquet('trades.parquet(1)')
 
 print('='* 40)
 print(f'Win rate: {(pfm.win_rate(df_trades)):.2f}%')
@@ -42,5 +42,5 @@ print(f'Expectancy: {pfm.expectancy_factor(df_trades)} pts')
 print(f'Sharpe Ratio: {rm.sharpe_ratio(df_trades)} pts')
 print(f'Sortino Ratio: {rm.sortino_ratio(df_trades)} pts')
 print(f'Streak Losses: {rm.streak_losses(df_trades)} trades')
-
+print(df_trades.tail())
 print('='* 40)
