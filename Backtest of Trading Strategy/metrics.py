@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 def calculate_win_rate(fileparquet):
     """Calculate win rate"""
     df = pd.read_parquet(fileparquet)
@@ -62,14 +61,14 @@ def calculate_profit_by_time(fileparquet):
         average_profit=('profit', 'mean'),
         number_of_trades=('profit', 'count'),
         win_rate=('profit', lambda x: (x > 0).mean())
-    )
+    ).reset_index()
     summary['win_rate'] = summary['win_rate'].apply(lambda x: f"{ x * 100:.2f}%")
     summary['average_profit'] = summary['average_profit'].apply(lambda x: f"{ x:.2f} pts")
     summary['profit'] = summary['profit'].apply(lambda x: f"{x:.2f} pts")
     return summary
 
 
-def calculate_acumulated_profit(fileparquet):
+def calculate_accumulated_profit(fileparquet):
     """Acumulated Profit = final profit"""
     df = pd.read_parquet(fileparquet)
     df['acumulated_profit'] = df['profit'].cumsum()
@@ -96,9 +95,98 @@ def calculate_drawdown(fileparquet):
     return drawdown
 
 
-# Tempo medio por op
-#Media Diaria
-#qtd op dia e semanal
-# Media diaria de gain
-#Media diaria de loss
-#Media semanal
+def calculate_average_time(fileparquet):
+    """Average time per trade"""
+    df = pd.read_parquet(fileparquet)
+    df['duration'] = df['exit_time'] - df['entry_time']
+    average_time = df['duration'].mean()
+    average_time =f'{average_time.total_seconds() / 60:.2f} min'
+    return average_time
+
+
+def calculate_maximum_time(fileparquet):
+    """Maximum time per trade"""
+    df = pd.read_parquet(fileparquet)
+    df['duration'] = df['exit_time'] - df['entry_time']
+    max_time = df['duration'].max()
+    max_time = f'{max_time.total_seconds() / 60:.2f} min'
+    return max_time
+
+
+def calculate_minimum_time(fileparquet):
+    """Minimum time per trade"""
+    df = pd.read_parquet(fileparquet)
+    df['duration'] = df['exit_time'] - df['entry_time']
+    min_time = df['duration'].min()
+    min_time = f'{min_time.total_seconds() / 60:.2f} min'
+    return min_time
+
+
+def calculate_daily_profit(fileparquet):
+    """Daily profit of trades"""
+    df = pd.read_parquet(fileparquet)
+    df['data_bucket'] = df['entry_time'].dt.date
+    sum_daily_profit = df.groupby('data_bucket').agg(
+        profit=('profit', 'sum')
+    ).reset_index()
+    return sum_daily_profit
+
+def calculate_weekly_profit(fileparquet):
+    """Weekly profit of trades"""
+    df = pd.read_parquet(fileparquet)
+    df['week_bucket'] = df['entry_time'].dt.to_period('W').dt.start_time
+    sum_week_profit = df.groupby('week_bucket').agg(
+        profit=('profit', 'sum')
+    ).reset_index()
+    return sum_week_profit
+
+def calculate_monthly_profit(fileparquet):
+    """monthly profit of trades"""
+    df = pd.read_parquet(fileparquet)
+    df['month_bucket'] = df['entry_time'].dt.to_period('M').dt.start_time
+    sum_month_profit = df.groupby('month_bucket').agg(
+        profit=('profit', 'sum')
+    ).reset_index()
+    return sum_month_profit
+
+def calculate_average_number_daily_trades(fileparquet):
+    """Average number operations per day"""
+    df = pd.read_parquet(fileparquet)
+    df['data_bucket'] = df['entry_time'].dt.date
+    sum_daily_op = df.groupby('data_bucket').agg(
+        number=('profit', 'count')
+    ).reset_index()
+    return sum_daily_op
+
+def calculate_average_number_week_trades(fileparquet):
+    """Average number operations per week"""
+    df = pd.read_parquet(fileparquet)
+    df['week_bucket'] = df['entry_time'].dt.to_period('W').dt.start_time
+    sum_weekly_op = df.groupby('week_bucket').agg(
+        number=('profit', 'count')
+    ).reset_index()
+    return sum_weekly_op
+
+def calculate_average_number_month_trades(fileparquet):
+    """Average number operations per month"""
+    df = pd.read_parquet(fileparquet)
+    df['month_bucket'] = df['entry_time'].dt.to_period('M').dt.start_time
+    sum_monthly_op = df.groupby('month_bucket').agg(
+        number=('profit', 'count')
+    ).reset_index()
+    return sum_monthly_op
+
+def calculate_average_daily_profit(fileparquet):
+    """Average daily profit of trades"""
+    average_dailyprofit = (calculate_daily_profit(fileparquet))['profit'].mean()
+    return average_dailyprofit
+
+def calculate_average_weekly_profit(fileparquet):
+    """Average weekly profit of trades"""
+    average_weeklyprofit = (calculate_weekly_profit(fileparquet))['profit'].mean()
+    return average_weeklyprofit
+
+def calculate_average_monthly_profit(fileparquet):
+    """Average monthly profit of trades"""
+    average_monthlyprofit  = (calculate_monthly_profit(fileparquet))['profit'].mean()
+    return average_monthlyprofit
