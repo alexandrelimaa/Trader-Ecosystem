@@ -18,8 +18,8 @@ stop_loss = 200
 trailing_activation = 65   #whenever hits 65 points = 13 tick
 trailing_stop = 15         #protect with 3 ticks of distance after ativacion
     #---Data for the backtest---#
-candle_files_pattern = "Files/candle_*.csv"
-tick_files_pattern = "Files/tick_*.csv"
+candle_files_pattern = "Files/Minutes of WINFUT/candle_*.csv"
+tick_files_pattern = "Files/Ticks of WINFUT/tick_*.csv"
 #===========================#
 
 #=== Organizing files ===#
@@ -186,5 +186,5 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
 
 #=== Making the list ===#
 df_trades = pd.DataFrame(trades)
-df_trades.to_parquet('trades.parquet')    # Salve the file to use in metrics
+df_trades.to_parquet('trades.parquet(1)')    # Salve the file to use in metrics
 #=======================#
