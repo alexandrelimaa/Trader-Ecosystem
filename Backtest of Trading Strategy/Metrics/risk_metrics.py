@@ -5,7 +5,7 @@ def accumulated_profit(df):
     """Accumulated Profit = final profit"""
     df = df.sort_values('entry_time').reset_index(drop=True)
     df['accumulated_profit'] = df['profit'].cumsum()
-    result = df['accumulated_profit'].iloc[-1]
+    result= df[['accumulated_profit','entry_time',]]
     return result
 
 
@@ -24,7 +24,7 @@ def drawdown(df):
     df['accumulated_profit'] = df['profit'].cumsum()
     df['highest_profit'] = df['accumulated_profit'].cummax()
     df['drawdown'] = df['highest_profit'] - df['accumulated_profit']
-    result = df['drawdown'].min()
+    result = df[['drawdown', 'entry_time',]]
     return result
 
 

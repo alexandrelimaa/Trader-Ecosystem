@@ -4,10 +4,10 @@ import numpy as np
 import helpers as h
 from datetime import time
 
-#==== Strategy Paramenters ====#
+#==== Strategy Paraments ====#
     #---TimeFrame--#
 timeframe = '3min'
-    #---Exponecial Moving Average---#
+    #---Exponential Moving Average---#
 short_ema = 9
 long_ema = 400
     #---Time of Operation---#
@@ -16,7 +16,7 @@ session_end = time(11 , 15)
     #---Stop Loss and Take Profit---#
 stop_loss = 200
 trailing_activation = 65   #whenever hits 65 points = 13 tick
-trailing_stop = 15         #protect with 3 ticks of distance after ativacion
+trailing_stop = 15         #protect with 3 ticks of distance after activation
     #---Data for the backtest---#
 candle_files_pattern = "Files/Minutes of WINFUT/candle_*.csv"
 tick_files_pattern = "Files/Ticks of WINFUT/tick_*.csv"
@@ -65,7 +65,7 @@ candle['touched_short_ema'] = np.select(condition2, results2)   #touch the short
 candle['closed_direction'] = np.where(candle['trend'] == 'up',
                           candle['Close'] > candle['Open'], candle['Close'] < candle['Open'])
 candle['touched_previous'] = candle['touched_short_ema'].shift(1)
-    # if the candle who did touched the ema close to the wrong direction, if the next one goes to the right direction it also counts
+    # if the candle who did touch the ema close to the wrong direction, if the next one goes to the right direction it also counts
 
 candle['within_session'] = (candle.index.time >= session_start) & (candle.index.time <= session_end)
 candle['next_within_session'] = candle['within_session'].shift(-1)
@@ -107,7 +107,7 @@ candle['buy_sell_price'] = candle['Open'].shift(-1)
 exit_price = None
 best_price = None           #the most favorable price until the moment
 trailing_active = False
-current_stoploss = None     #always following the best_price by 3 ticks of distance
+current_stop_loss = None     #always following the best_price by 3 ticks of distance
 last_exit_time = None
 profit = None
 trades = []                   # saving trades in a list
@@ -124,14 +124,14 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
             position_open = True
             trade_type = 'buy'
             entry_price = candle_row['buy_sell_price']
-            current_stoploss = entry_price - stop_loss
+            current_stop_loss = entry_price - stop_loss
             best_price = entry_price
         #if it's sell
         elif candle_row['sell_signal']:
             position_open = True
             trade_type = 'sell'
             entry_price = candle_row['buy_sell_price']
-            current_stoploss = entry_price + stop_loss
+            current_stop_loss = entry_price + stop_loss
             best_price = entry_price
     #finding the exit
     if position_open:
@@ -144,8 +144,8 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
                     best_price = tick['Price']
                     if best_price >= (entry_price + trailing_activation):
                         trailing_active = True
-                        current_stoploss = ( best_price - trailing_stop )
-                if tick['Price'] <= current_stoploss:
+                        current_stop_loss = ( best_price - trailing_stop )
+                if tick['Price'] <= current_stop_loss:
                     trailing_active = False
                     exit_price = tick['Price']
                     profit = exit_price - entry_price
@@ -166,8 +166,8 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
                     best_price = tick['Price']
                     if best_price <= (entry_price - trailing_activation) :
                         trailing_active = True
-                        current_stoploss = ( best_price + trailing_stop )
-                if tick['Price'] >= current_stoploss:
+                        current_stop_loss = ( best_price + trailing_stop )
+                if tick['Price'] >= current_stop_loss:
                     trailing_active = False
                     exit_price = tick['Price']
                     profit = entry_price - exit_price
