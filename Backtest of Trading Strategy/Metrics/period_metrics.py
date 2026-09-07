@@ -1,6 +1,8 @@
 #Period Metrics, what happens in a period of time,
 # What should I expect of the market in this period
 
+import pandas as pd
+
 def profit_by_time(df):
     """Calculate profit by time,
     average profit by time,
@@ -16,14 +18,26 @@ def profit_by_time(df):
     ).reset_index()
     return summary
 
+def profit_weekday(df):
+    """Calculate profit by day of the week"""
+    df = df.copy()
+    df['weekday_bucket'] = df['entry_time'].dt.day_name()
+    dias_ordem = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    df['weekday_bucket'] = pd.Categorical(df['weekday_bucket'], categories=dias_ordem, ordered=True)
+    result = df.groupby('weekday_bucket', observed= True).agg(
+        profit=('profit', 'sum')
+    ).reset_index()
+    return result
+
 def daily_profit(df):
     """Daily profit of trades"""
     df = df.copy()
-    df['data_bucket'] = df['entry_time'].dt.date
+    df['data_bucket'] = df['entry_time'].dt.date()
     result = df.groupby('data_bucket').agg(
         profit=('profit', 'sum')
     ).reset_index()
     return result
+
 
 def weekly_profit(df):
     """Weekly profit of trades"""
