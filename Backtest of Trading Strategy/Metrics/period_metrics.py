@@ -32,7 +32,7 @@ def profit_weekday(df):
 def daily_profit(df):
     """Daily profit of trades"""
     df = df.copy()
-    df['data_bucket'] = df['entry_time'].dt.date()
+    df['data_bucket'] = df['entry_time'].dt.date
     result = df.groupby('data_bucket').agg(
         profit=('profit', 'sum')
     ).reset_index()

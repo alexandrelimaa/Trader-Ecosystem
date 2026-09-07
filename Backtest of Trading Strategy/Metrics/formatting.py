@@ -14,3 +14,8 @@ def format_min(value):
     """Format TimeDelta in min """
     value = f'{value.total_seconds() / 60:.2f} min'
     return value
+
+def format_round(value):
+    """ :.2f"""
+    value = f'{value:.2f}'
+    return value
