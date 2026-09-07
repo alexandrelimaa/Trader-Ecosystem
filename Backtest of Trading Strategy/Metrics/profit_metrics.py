@@ -2,7 +2,7 @@
 
 def win_rate(df):
     """Calculate win rate"""
-    result = (df['profit'] > 0).mean() *100
+    result = (df['profit'] > 0).mean()
     return result
 
 def final_profit(df):

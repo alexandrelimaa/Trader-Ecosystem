@@ -9,14 +9,14 @@ def equity_curve(df):
     data = rm.accumulated_profit(df)
     x_line = data['entry_time']
     y_line = data['accumulated_profit']
-    plt.figure(figsize= ( 25, 7 ))
+    plt.figure(figsize= ( 30, 8 ))
     plt.plot(x_line, y_line)
     plt.title('Equity Curve')
     plt.xlabel('Time')
     plt.ylabel('Accumulated Profit')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Equity_curve.png', dpi=150)
+    plt.savefig('Grafics/Equity Curve.png', dpi=300)
     plt.show()
     plt.close()
 
