@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import helpers as h
 from datetime import time
+import statistics as st
+from statistics import calculate_emas
 
 #==== Strategy Paraments ====#
     #---TimeFrame--#
@@ -35,66 +37,13 @@ candle = candle_1min.resample(timeframe).agg({
 #========================#
 
 #=== Creating EMA's ===#
-candle['short_ema'] = candle['Close'].ewm(span=short_ema, adjust=False).mean()
-candle['long_ema'] = candle['Close'].ewm(span=long_ema, adjust=False).mean()
+candle = st.calculate_emas(candle,short_ema,long_ema)
+
 #=====================#
 
 #=== Creating entry signal ===#
-condition = [
-    candle['Close'] > candle['long_ema'],
-    candle['Close'] < candle['long_ema'],
-    candle['Close'] == candle['long_ema'],
-]      #filter in the candles, following the big trend
-results = [
-    'up',
-    'down',
-    'neutral'
-]
-candle['trend'] = np.select(condition, results, default = 'undefined')
-condition2 = [
-    candle['trend'] == 'up',
-    candle['trend'] == 'down',
-    candle['trend'] == 'neutral'
-]
-results2 = [
-    (candle['Low'] <= candle['short_ema']) & (candle['short_ema'] <= candle['High']),
-    (candle['High'] >= candle['short_ema']) & (candle['short_ema'] >= candle['Low']),
-    False
-]
-candle['touched_short_ema'] = np.select(condition2, results2)   #touch the short ema
-candle['closed_direction'] = np.where(candle['trend'] == 'up',
-                          candle['Close'] > candle['Open'], candle['Close'] < candle['Open'])
-candle['touched_previous'] = candle['touched_short_ema'].shift(1)
-    # if the candle who did touch the ema close to the wrong direction, if the next one goes to the right direction it also counts
+candle = st.calculate_signal(candle, session_start, session_end)
 
-candle['within_session'] = (candle.index.time >= session_start) & (candle.index.time <= session_end)
-candle['next_within_session'] = candle['within_session'].shift(-1)
-    #time limitation
-    #--- Checking if the signal was real ---#
-candle['buy_signal'] =(
-    ((candle['trend'] == 'up') &
-    (candle['closed_direction'] == True) &
-    (candle['touched_short_ema'] == True) &
-    (candle['within_session'] == True) &
-    (candle['next_within_session'] == True)) |
-    ((candle['trend'] == 'up') &
-    (candle['closed_direction'] == True) &
-    (candle['touched_previous'] == True) &
-    (candle['within_session'] == True) &
-    (candle['next_within_session'] == True))
-)
-candle['sell_signal'] =(
-    ((candle['trend'] == 'down') &
-    (candle['closed_direction'] == True) &
-    (candle['touched_short_ema'] == True) &
-    (candle['within_session'] == True) &
-    (candle['next_within_session'] == True)) |
-    ((candle['trend'] == 'down') &
-    (candle['closed_direction'] == True) &
-    (candle['touched_previous'] == True) &
-    (candle['within_session'] == True) &
-    (candle['next_within_session'] == True))
-)
 #=============================#
 
 #===Transaction Cost ===#
@@ -137,6 +86,8 @@ for index, candle_row in candle.loc[warmup_start:].iterrows():
             current_stop_loss = entry_price + stop_loss
             best_price = entry_price
     #finding the exit
+
+    
     if position_open:
         execution_time = index +pd.Timedelta(timeframe)
         operation_ticks = tick_data.loc[execution_time:]

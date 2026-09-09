@@ -19,3 +19,8 @@ def format_round(value):
     """ :.2f"""
     value = f'{value:.2f}'
     return value
+
+def convert_to_currency(value, currency):
+    value = value * currency
+    value = f' R${value:.2f}'
+    return value
