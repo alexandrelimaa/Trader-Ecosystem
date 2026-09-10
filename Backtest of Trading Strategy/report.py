@@ -79,4 +79,4 @@ pdf.cell(0,10, text = f"Minimum Time: {fm.format_min(tm.minimum_time(df))}", new
 #pdf.cell(0,10, text = f"")
 #pdf.set_font('Times', size=12)
 #pdf.ln(10)
-pdf.output('teste.pdf')
+pdf.output('teste(1 copy).pdf')
