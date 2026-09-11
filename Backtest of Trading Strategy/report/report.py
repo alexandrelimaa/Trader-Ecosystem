@@ -1,8 +1,8 @@
 from fpdf import FPDF
 import pandas as pd
-from report.metrics import formatting as fm, period_metrics as pm, profit_metrics as prm
-from report.metrics import risk_metrics as rm
-from report.metrics import time_metrics as tm
+from metrics import formatting as fm, period_metrics as pm, profit_metrics as prm
+from metrics import risk_metrics as rm
+from metrics import time_metrics as tm
 
 #Making the document
 df = pd.read_parquet("../outputs/trades.parquet(1)")
@@ -28,10 +28,12 @@ pdf.set_font('Times', size=16)
 pdf.cell(0,10, text= "Profit metrics:", new_x='LMARGIN', new_y='NEXT')
 pdf.ln(2.5)
 pdf.set_font('Times', size=12)
-pdf.cell(55,10, text = f"Final Profit: {fm.format_points(prm.final_profit(df))}", new_x='RiGHT', new_y='TOP')
+pdf.cell(55,10, text = f"Final Profit points: {fm.format_points(prm.final_profit(df))}", new_x='RiGHT', new_y='TOP')
+pdf.cell(55,10, text = f"Final Profit R$: {fm.convert_to_currency(prm.final_profit(df), 0.2)}", new_x='RiGHT', new_y='TOP')
 pdf.cell(0,10, text = f"Profit per Trade: {fm.format_points(prm.profit_per_operations(df))}", new_x='LMARGIN', new_y='NEXT')
 pdf.cell(0,10, text = f"Highest Profit: {fm.format_points(rm.highest_profit(df))}", new_x='LMARGIN', new_y='NEXT')
-pdf.cell(0,10, text = f"Max Drawdown: {fm.format_points(rm.drawdown(df)['drawdown'].max())}", new_x='LMARGIN', new_y='NEXT')
+pdf.cell(0,10, text = f"Max Drawdown: {fm.format_points(rm.drawdown(df)['drawdown'].max())}", new_x='RIGHT', new_y='TOP')
+pdf.cell(0,10, text = f"Max Drawdown: {fm.convert_to_currency(rm.drawdown(df)['drawdown'].max(), 0.2)}", new_x='LMARGIN', new_y='NEXT')
 pdf.image('grafics/Drawdown_Curve.png', x = 10, w = 150)
 pdf.ln(2.5)
 pdf.cell(0,10, text = f"Win Rate: { fm.format_pct(prm.win_rate(df))}", new_x='LMARGIN', new_y='NEXT')
@@ -77,4 +79,4 @@ pdf.cell(0,10, text = f"Minimum Time: {fm.format_min(tm.minimum_time(df))}", new
 #pdf.cell(0,10, text = f"")
 #pdf.set_font('Times', size=12)
 #pdf.ln(10)
-pdf.output('teste(1 copy).pdf')
+pdf.output('testando2.pdf')
