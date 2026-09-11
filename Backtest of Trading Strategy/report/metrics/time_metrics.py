@@ -1,4 +1,4 @@
-#Time Metrics, how long a trade should take
+#Time metrics, how long a trade should take
 
 def average_time(df):
     """Average time per trade"""

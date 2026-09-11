@@ -1,4 +1,4 @@
-#Period Metrics, what happens in a period of time,
+#Period metrics, what happens in a period of time,
 # What should I expect of the market in this period
 
 import pandas as pd

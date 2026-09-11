@@ -1,7 +1,7 @@
-import plot
+from report.grafics import plot
 import pandas as pd
 
-df = pd.read_parquet("trades.parquet(1)")
+df = pd.read_parquet("../outputs/trades.parquet(1)")
 plot.equity_curve(df)
 plot.drawdown_curve(df)
 plot.profit_time_bars(df)

@@ -1,5 +1,5 @@
-from Metrics import risk_metrics as rm
-from Metrics import period_metrics as pm
+from report.metrics import risk_metrics as rm
+from report.metrics import period_metrics as pm
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -16,7 +16,7 @@ def equity_curve(df):
     plt.ylabel('Accumulated Profit')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Equity Curve.png', dpi=300)
+    plt.savefig('Equity Curve.png', dpi=300)
     plt.show()
     plt.close()
 
@@ -32,7 +32,7 @@ def drawdown_curve(df):
     plt.ylabel('Drawdown')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Drawdown_curve.png', dpi=150)
+    plt.savefig('Drawdown_curve.png', dpi=150)
     plt.show()
     plt.close()
 
@@ -48,7 +48,7 @@ def profit_time_bars(df):
     plt.ylabel('Profit')
     plt.grid(True, alpha=0.3)
     plt.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit_time_bars.png', dpi=150)
+    plt.savefig('Profit_time_bars.png', dpi=150)
     plt.show()
     plt.close()
 
@@ -62,13 +62,13 @@ def profit_distribution(df):
     plt.ylabel('Frequency')
     plt.grid(True, alpha=0.3)
     plt.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit per trade Histogram.png', dpi=150)
+    plt.savefig('Profit per trade Histogram.png', dpi=150)
     plt.show()
     plt.close()
 
 
 def profit_weekday_bars(df):
-    """ Grafics Profit weekday bars for trading strategies"""
+    """ grafics Profit weekday bars for trading strategies"""
     data = pm.profit_weekday(df)
     x_bar = data['profit']
     y_bar = data['weekday_bucket'].astype('str')
@@ -79,12 +79,12 @@ def profit_weekday_bars(df):
     plt.ylabel('Day of the week')
     plt.grid(True, alpha=0.3)
     plt.axvline(x=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit per days of the Week.png', dpi=150)
+    plt.savefig('Profit per days of the Week.png', dpi=150)
     plt.show()
     plt.close()
 
 def streak_loss_bar(df):
-    """ Grafics Streak loss bars for trading strategies"""
+    """ grafics Streak loss bars for trading strategies"""
     df = df.copy()
     df = df.sort_values('entry_time').reset_index(drop=True)
     y_line = np.where(df['profit'] > 0, 1, -1)
@@ -96,12 +96,12 @@ def streak_loss_bar(df):
     plt.ylabel('Streak Loss')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Streak Loss.png', dpi=150)
+    plt.savefig('Streak Loss.png', dpi=150)
     plt.show()
     plt.close()
 
 def daily_trades_grafic(df):
-    """Grafics of Average daily trades  for trading strategies"""
+    """grafics of Average daily trades  for trading strategies"""
     data = pm.daily_profit(df)
     x_line = data['data_bucket'].astype('str')
     y_line = data['daily_profit'].astype('float')
@@ -113,13 +113,13 @@ def daily_trades_grafic(df):
     plt.ylabel('Number of Trades')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit per date.png', dpi=150)
+    plt.savefig('Profit per date.png', dpi=150)
     plt.show()
     plt.close()
 
 
 def weekly_trades_grafic(df):
-    """Grafics of Average weekly trades  for trading strategies"""
+    """grafics of Average weekly trades  for trading strategies"""
     data = pm.weekly_profit(df)
     x_line = data['week_bucket'].astype('str')
     y_line = data['profit']
@@ -130,12 +130,12 @@ def weekly_trades_grafic(df):
     plt.ylabel('Profit')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit per Week.png', dpi=150)
+    plt.savefig('Profit per Week.png', dpi=150)
     plt.show()
     plt.close()
 
 def montly_trades_grafic(df):
-    """Grafics of Average monthly trades  for trading strategies"""
+    """grafics of Average monthly trades  for trading strategies"""
     data = pm.monthly_profit(df)
     x_line = data['month_bucket'].astype('str')
     y_line = data['profit']
@@ -146,12 +146,12 @@ def montly_trades_grafic(df):
     plt.ylabel('Profit')
     plt.grid(True, alpha=0.3)
     plt.axhline(y=0, color='gray', linestyle='--', linewidth=0.8)
-    plt.savefig('Grafics/Profit per Month.png', dpi=150)
+    plt.savefig('Profit per Month.png', dpi=150)
     plt.show()
     plt.close()
 
 def number_trades_daily_grafic(df):
-    """Grafics of Average number of daily trades  for trading strategies"""
+    """grafics of Average number of daily trades  for trading strategies"""
     data = pm.average_number_daily_trades(df)
     x_line = data['data_bucket'].astype('str')
     y_line = data['number'].astype('float')
@@ -161,12 +161,12 @@ def number_trades_daily_grafic(df):
     plt.xlabel('Date')
     plt.ylabel('Number Trades')
     plt.grid(True, alpha=0.3)
-    plt.savefig('Grafics/Number of Daily Trades.png', dpi=150)
+    plt.savefig('Number of Daily Trades.png', dpi=150)
     plt.show()
     plt.close()
 
 def number_trades_weekly_grafic(df):
-    """Grafics of Average number of weekly trades  for trading strategies"""
+    """grafics of Average number of weekly trades  for trading strategies"""
     data = pm.average_number_week_trades(df)
     x_line = data['week_bucket'].astype('str')
     y_line = data['number'].astype('float')
@@ -176,12 +176,12 @@ def number_trades_weekly_grafic(df):
     plt.xlabel('Week')
     plt.ylabel('Number Trades')
     plt.grid(True, alpha=0.3)
-    plt.savefig('Grafics/Number of Week Trades.png', dpi=150)
+    plt.savefig('Number of Week Trades.png', dpi=150)
     plt.show()
     plt.close()
 
 def number_trades_monthly_grafic(df):
-    """Grafics of Average number of monthly trades  for trading strategies"""
+    """grafics of Average number of monthly trades  for trading strategies"""
     data = pm.average_number_month_trades(df)
     x_line = data['month_bucket'].astype('str')
     y_line = data['number'].astype('float')
@@ -191,6 +191,6 @@ def number_trades_monthly_grafic(df):
     plt.xlabel('Date')
     plt.ylabel('Number Trades')
     plt.grid(True, alpha=0.3)
-    plt.savefig('Grafics/Number of Monthly Trades.png', dpi=150)
+    plt.savefig('Number of Monthly Trades.png', dpi=150)
     plt.show()
     plt.close()

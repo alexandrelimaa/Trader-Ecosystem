@@ -1,4 +1,4 @@
-#Profit Metrics, all the metrics about result and efficiency
+#Profit metrics, all the metrics about result and efficiency
 
 def win_rate(df):
     """Calculate win rate"""

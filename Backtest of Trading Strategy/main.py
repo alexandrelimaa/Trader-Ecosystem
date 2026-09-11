@@ -25,8 +25,8 @@ cost_per_trade = 10
 asset = 'WINFUT'
 
     #---Data for the backtest---#
-candle_files_pattern = "Files/Minutes of WINFUT/candle_*.csv"
-tick_files_pattern = "Files/Ticks of WINFUT/tick_*.csv"
+candle_files_pattern = "data/candles/candle_*.csv"
+tick_files_pattern = "data/ticks/tick_*.csv"
 #===========================#
 
 #=== Organizing files ===#
