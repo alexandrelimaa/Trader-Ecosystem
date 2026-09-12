@@ -1,5 +1,5 @@
 #Risk metrics, everything to understand how bad it could be
-from report.metrics import period_metrics as pm
+from metrics import period_metrics as pm
 
 
 def accumulated_profit(df):
